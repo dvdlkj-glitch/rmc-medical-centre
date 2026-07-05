@@ -7,8 +7,10 @@ doctor information, package pricing with terms, and a publication date.
 """
 
 import base64
+import json
 from pathlib import Path
 
+import requests
 import streamlit as st
 
 st.set_page_config(
@@ -41,6 +43,95 @@ MAP_EMBED = ("https://maps.google.com/maps?q=Rafflesia%20Medical%20Centre%20"
 @st.cache_data
 def img_b64(name: str) -> str:
     return base64.b64encode((ASSETS / name).read_bytes()).decode()
+
+
+# ------------------------------------------------------------ interest counter
+# Visitors can tap "I'm interested" on a topic. Counts are stored in Supabase
+# (configure [supabase] url/anon_key in Streamlit secrets); without secrets the
+# app falls back to a local JSON file so it still works in local preview.
+
+TOPICS = {
+    "sunday_paediatric_clinic": ("🧸", "Sunday Paediatric Clinic"),
+    "pain_management": ("💆", "Pain Management (Back Pain)"),
+    "flu_vaccination": ("💉", "Flu Vaccination"),
+    "allergy_testing": ("🌼", "Allergy Testing"),
+    "health_screening": ("✅", "Health Screening"),
+    "general_consultation": ("💬", "General Consultation"),
+}
+
+LOCAL_COUNTS = Path(__file__).parent / "interest_local.json"
+
+
+def _sb():
+    try:
+        conf = st.secrets["supabase"]
+        return conf["url"].rstrip("/"), conf["anon_key"]
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=20)
+def get_counts() -> dict:
+    counts = {t: 0 for t in TOPICS}
+    sb = _sb()
+    if sb:
+        url, key = sb
+        try:
+            r = requests.get(
+                f"{url}/rest/v1/rmc_interest?select=topic,count",
+                headers={"apikey": key, "Authorization": f"Bearer {key}"},
+                timeout=6,
+            )
+            r.raise_for_status()
+            for row in r.json():
+                if row["topic"] in counts:
+                    counts[row["topic"]] = int(row["count"])
+            return counts
+        except Exception:
+            pass
+    if LOCAL_COUNTS.exists():
+        try:
+            counts.update({k: int(v) for k, v in json.loads(
+                LOCAL_COUNTS.read_text()).items() if k in counts})
+        except Exception:
+            pass
+    return counts
+
+
+def add_interest(topic: str) -> None:
+    sb = _sb()
+    if sb:
+        url, key = sb
+        try:
+            requests.post(
+                f"{url}/rest/v1/rpc/rmc_interest_increment",
+                headers={"apikey": key, "Authorization": f"Bearer {key}",
+                         "Content-Type": "application/json"},
+                json={"p_topic": topic},
+                timeout=6,
+            ).raise_for_status()
+            get_counts.clear()
+            return
+        except Exception:
+            pass
+    counts = get_counts().copy()
+    counts[topic] = counts.get(topic, 0) + 1
+    LOCAL_COUNTS.write_text(json.dumps(counts))
+    get_counts.clear()
+
+
+def interest_button(topic: str, with_name: bool = False) -> None:
+    """Render an 'I'm interested' button with a live count for a topic."""
+    n = get_counts().get(topic, 0)
+    voted = st.session_state.get(f"voted_{topic}", False)
+    name = f"{TOPICS[topic][1]} — " if with_name else ""
+    label = (f"💗 {name}Thanks — noted! · {n}" if voted
+             else f"🤍 {name}I'm interested · {n}")
+    if st.button(label, key=f"btn_{topic}", disabled=voted,
+                 use_container_width=True):
+        add_interest(topic)
+        st.session_state[f"voted_{topic}"] = True
+        st.rerun()
 
 
 # ---------------------------------------------------------------- global CSS
@@ -201,6 +292,33 @@ html, body, [class*="css"], .stMarkdown {{
 .rmc-footer a {{ color:#8FE3DA; text-decoration:none; font-weight:600; }}
 .rmc-footer .divider {{ border-top:1px solid rgba(255,255,255,.15); margin:1.1rem 0; }}
 
+/* ---------- interest buttons ---------- */
+.stButton > button {{
+    background:#fff; color:{PINK_D}; border:1.6px solid {PINK};
+    border-radius:999px; font-weight:700; font-size:.85rem;
+    padding:.45rem 1rem; transition: all .15s ease;
+}}
+.stButton > button:hover {{
+    background:{PINK}; color:#fff; border-color:{PINK};
+    transform: translateY(-1px);
+}}
+.stButton > button:disabled {{
+    background:#FCEEF3; color:{PINK_D}; border-color:#F2C9D8; opacity:1;
+}}
+
+/* ---------- interest board ---------- */
+.board {{
+    background:#fff; border:1px solid #EDE6DB; border-radius:18px;
+    padding:1.6rem 1.8rem; margin-top:1.4rem;
+}}
+.board .row {{ display:flex; align-items:center; gap:.9rem; margin-bottom:.7rem; }}
+.board .lbl {{ width:250px; min-width:180px; color:{NAVY}; font-weight:600; font-size:.88rem; }}
+.board .track {{ flex:1; background:#F4EFE8; border-radius:999px; height:14px; overflow:hidden; }}
+.board .fill {{ height:100%; border-radius:999px;
+    background:linear-gradient(90deg, {TEAL}, {PINK}); }}
+.board .n {{ width:52px; text-align:right; color:{PINK_D}; font-weight:800;
+    font-size:.9rem; font-variant-numeric: tabular-nums; }}
+
 /* ---------- floating WhatsApp ---------- */
 .wa-fab {{
     position:fixed; right:26px; bottom:26px; z-index:999;
@@ -286,6 +404,13 @@ cards_html = "".join(
 )
 st.markdown(f'<div class="card-grid">{cards_html}</div>', unsafe_allow_html=True)
 
+st.markdown('<div style="height:.8rem"></div>', unsafe_allow_html=True)
+sb1, sb2, _sp = st.columns([1.1, 1.1, 1.8], gap="small")
+with sb1:
+    interest_button("health_screening", with_name=True)
+with sb2:
+    interest_button("general_consultation", with_name=True)
+
 # ---------------------------------------------------------------- clinic days
 st.markdown("""
 <div class="sec">
@@ -306,6 +431,7 @@ with c1:
       child-friendly environment. By appointment: {PHONE_DISPLAY}.</p>
     </div>
     """, unsafe_allow_html=True)
+    interest_button("sunday_paediatric_clinic")
 with c2:
     st.markdown(f"""
     <div class="clinic-card pink">
@@ -316,6 +442,7 @@ with c2:
       muscle strain, ageing and past injuries. Booking via WhatsApp: {PHONE_DISPLAY}.</p>
     </div>
     """, unsafe_allow_html=True)
+    interest_button("pain_management")
 
 st.markdown("""
 <p class="fine">Doctor information is provided for factual reference only. Consultation sessions
@@ -351,6 +478,7 @@ with h1:
       builds about two weeks after vaccination. Subject to doctor's assessment of suitability.</p>
     </div>
     """, unsafe_allow_html=True)
+    interest_button("flu_vaccination")
 with h2:
     st.markdown("""
     <div class="hl-panel pink">
@@ -369,6 +497,39 @@ with h2:
       doctor; testing does not replace medical consultation, diagnosis or treatment.</p>
     </div>
     """, unsafe_allow_html=True)
+    interest_button("allergy_testing")
+
+# ---------------------------------------------------------------- interest board
+counts = get_counts()
+total_votes = sum(counts.values())
+st.markdown("""
+<div class="sec">
+  <div class="kicker">Visitor Interest</div>
+  <h2>What visitors are looking at 👀</h2>
+  <p class="sub">Live count of "I'm interested" taps on this page — a quick way to see
+  which clinics and services other visitors are curious about.</p>
+</div>
+""", unsafe_allow_html=True)
+
+ranked = sorted(TOPICS, key=lambda t: counts.get(t, 0), reverse=True)
+max_n = max(1, counts.get(ranked[0], 0))
+medals = ["🥇", "🥈", "🥉"]
+rows = ""
+for i, t in enumerate(ranked):
+    ico, name = TOPICS[t]
+    n = counts.get(t, 0)
+    pct = max(4, round(n / max_n * 100))
+    medal = medals[i] if i < len(medals) and n > 0 else "&nbsp;&nbsp;"
+    rows += (f'<div class="row"><div class="lbl">{medal} {ico} {name}</div>'
+             f'<div class="track"><div class="fill" style="width:{pct}%"></div></div>'
+             f'<div class="n">{n}</div></div>')
+st.markdown(
+    f'<div class="board">{rows}'
+    f'<p class="fine" style="margin-top:.6rem">Counter reflects visitor interest on this '
+    f'page only ({total_votes} taps so far) and is not a measure of clinical quality or '
+    f'outcome. All services are subject to schedule and appointment.</p></div>',
+    unsafe_allow_html=True,
+)
 
 # ---------------------------------------------------------------- gallery
 st.markdown("""

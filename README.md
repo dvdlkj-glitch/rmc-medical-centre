@@ -17,7 +17,20 @@ streamlit run streamlit_app.py
 
 1. Go to <https://share.streamlit.io> and sign in with GitHub.
 2. **New app** → pick this repository, branch `main`, main file `streamlit_app.py`.
-3. Deploy — no secrets or extra configuration required.
+3. In **Advanced settings → Secrets**, paste the contents of your local
+   `.streamlit/secrets.toml` (Supabase URL + anon key) so the visitor
+   interest counter persists:
+
+   ```toml
+   [supabase]
+   url = "https://<project>.supabase.co"
+   anon_key = "<anon key>"
+   ```
+
+4. Deploy.
+
+Without secrets the app still runs — the interest counter falls back to a
+local file (counts reset when the container restarts).
 
 ## Compliance notes (before public launch)
 

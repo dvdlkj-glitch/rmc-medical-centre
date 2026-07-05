@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+.streamlit/secrets.toml
+interest_local.json
