@@ -21,8 +21,8 @@ streamlit run streamlit_app.py
 
 ## Compliance notes (before public launch)
 
-- Verify the BrandLaureate certificate / winner listing and permission to use
-  the award visual — remove the award strip if unverified.
+- BrandLaureate award: verified by the client (July 2026) — award strip may
+  be used with the exact title, category and year.
 - Treat the page as a healthcare advertisement: submit to the MOH / MAB / LIU
   approval channel where required; add the KKLIU number once issued.
 - Re-confirm the RM88 flu fee, clinic days/hours and doctor registration
