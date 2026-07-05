@@ -373,6 +373,20 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------------- awareness video
+st.markdown('<div style="height:1.4rem"></div>', unsafe_allow_html=True)
+v_l, v_mid, v_r = st.columns([1, 2.4, 1])
+with v_mid:
+    st.video(str(ASSETS / "video" / "rmc-awareness-10s.mp4"),
+             autoplay=True, muted=True, loop=True)
+    st.markdown(
+        '<p style="text-align:center;color:#5F6E78;font-size:.85rem;margin-top:.3rem">'
+        '🎬 Health awareness message — sometimes small discomfort is your body\'s way of '
+        'asking for attention. If symptoms continue, speak to a qualified healthcare '
+        'professional.</p>',
+        unsafe_allow_html=True,
+    )
+
 # ---------------------------------------------------------------- services
 st.markdown("""
 <div class="sec">
