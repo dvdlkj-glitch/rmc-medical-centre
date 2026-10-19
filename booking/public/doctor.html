@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>My Appointments · RMC</title>
+  <meta name="theme-color" content="#173A56">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="inner">
+      <span class="brand">
+        <span class="logo" aria-hidden="true">🌺</span>
+        <span><b>Rafflesia Medical Centre</b><small>Doctor's appointment list</small></span>
+      </span>
+      <div class="right"><button type="button" class="btn btn-ghost btn-sm" id="logout" hidden>Sign out</button></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="login" class="login-box" hidden>
+      <form class="card" id="login-form" novalidate>
+        <h1 id="login-name">Doctor sign in</h1>
+        <p class="muted" id="login-spec" style="margin:0 0 16px"></p>
+        <div id="login-fields">
+          <div class="field">
+            <label for="pin">Your PIN</label>
+            <input type="password" id="pin" inputmode="numeric" autocomplete="current-password" maxlength="8" required>
+            <span class="hint">You stay signed in on this device for 30 days.</span>
+          </div>
+          <div class="notice error" id="login-error" role="alert" hidden></div>
+          <button class="btn btn-primary btn-block" type="submit" style="margin-top:12px">View my appointments</button>
+        </div>
+        <div class="notice warn" id="no-pin" hidden>No PIN has been set for this page yet. Please ask the RMC help desk (010-968 1216) to set one for you.</div>
+      </form>
+    </section>
+
+    <section id="app" hidden>
+      <div class="dr-head">
+        <span class="avatar" id="dr-avatar" aria-hidden="true"></span>
+        <div>
+          <h1 id="dr-name"></h1>
+          <div class="spec" id="dr-spec"></div>
+          <div class="sessions-line" id="dr-sessions"></div>
+        </div>
+      </div>
+      <div class="notice" id="viewer-note" hidden>You are viewing this page as help desk staff.</div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="v" id="st-today">0</div><div class="l">Confirmed today</div></div>
+        <div class="stat"><div class="v" id="st-week">0</div><div class="l">Next 7 days</div></div>
+        <div class="stat"><div class="v" id="st-pending">0</div><div class="l">Awaiting help desk call</div></div>
+      </div>
+
+      <div id="cancelled"></div>
+      <div id="days"></div>
+      <p class="fine" style="margin-top:20px">
+        Only appointments confirmed by the help desk are listed. <span id="updated"></span>
+        This page refreshes by itself every 30 seconds.
+      </p>
+    </section>
+
+    <section id="missing" hidden>
+      <div class="card empty" style="margin-top:32px">This doctor page does not exist. Please check the link with the help desk.</div>
+    </section>
+  </main>
+
+  <script type="module" src="/assets/js/doctor.js"></script>
+</body>
+</html>

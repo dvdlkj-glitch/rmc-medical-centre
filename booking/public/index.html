@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Book a Specialist Appointment · Rafflesia Medical Centre</title>
+  <meta name="description" content="See specialist availability at Rafflesia Medical Centre, Kepayan, Kota Kinabalu and request an appointment online.">
+  <meta name="theme-color" content="#173A56">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="/assets/js/embed.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="inner">
+      <a class="brand" href="/">
+        <span class="logo" aria-hidden="true">🌺</span>
+        <span><b>Rafflesia Medical Centre</b><small>Specialist Appointments · Kepayan, Kota Kinabalu</small></span>
+      </a>
+      <div class="right"><a class="call" id="top-call" href="tel:+60109681216">📞 010-968 1216</a></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="page-intro">
+      <div class="kicker">Online appointment</div>
+      <h1>Book a specialist appointment</h1>
+      <p>Choose a doctor and an open time. Your request stays <b>pending</b> until our help desk
+        calls you to confirm it.</p>
+    </section>
+
+    <ol class="steps" id="steps" aria-label="Booking steps">
+      <li data-step="1"><span class="n">1</span><span class="t">Doctor</span></li>
+      <li data-step="2"><span class="n">2</span><span class="t">Time</span></li>
+      <li data-step="3"><span class="n">3</span><span class="t">Details</span></li>
+    </ol>
+
+    <!-- Step 1: doctor -->
+    <section id="step-doctor" aria-labelledby="steps">
+      <div class="filters">
+        <label class="sr-only" for="q">Search</label>
+        <input type="search" id="q" placeholder="Search doctor, specialty or condition" autocomplete="off">
+        <label class="sr-only" for="specialty">Specialty</label>
+        <select id="specialty"><option value="">All specialties</option></select>
+      </div>
+      <label class="filter-toggle"><input type="checkbox" id="only-open"> Only show doctors with online slots</label>
+      <div id="doc-list" class="doc-list"><p class="empty">Loading doctors…</p></div>
+    </section>
+
+    <!-- Step 2: date & time -->
+    <section id="step-time" hidden>
+      <div class="card picked-doc" id="picked-doc"></div>
+      <div id="time-body"></div>
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-ghost" data-back="1">← Doctors</button>
+        <button type="button" class="btn btn-primary" id="to-details" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 3: details -->
+    <section id="step-details" hidden>
+      <form id="details-form" class="card" novalidate>
+        <dl class="summary" id="summary"></dl>
+        <div class="field">
+          <label for="f-name">Full name <span class="opt">(as in IC / passport)</span></label>
+          <input type="text" id="f-name" name="name" autocomplete="name" maxlength="80" required>
+        </div>
+        <div class="field">
+          <label for="f-phone">Mobile number</label>
+          <input type="tel" id="f-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 012-345 6789" maxlength="20" required>
+          <span class="hint">Our help desk will call this number to confirm your appointment.</span>
+        </div>
+        <div class="field">
+          <label for="f-mrn">RMC patient number <span class="opt">(optional)</span></label>
+          <input type="text" id="f-mrn" name="mrn" maxlength="30" placeholder="e.g. RMC 261006 — if you have visited before">
+        </div>
+        <div class="field">
+          <label for="f-notes">Reason for visit <span class="opt">(optional)</span></label>
+          <textarea id="f-notes" name="notes" maxlength="300" placeholder="e.g. follow-up, knee pain, child vaccination"></textarea>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="f-website">Website</label>
+          <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <label class="check" for="f-consent">
+          <input type="checkbox" id="f-consent" name="consent" required>
+          <span>I agree that Rafflesia Medical Centre may call or WhatsApp me about this appointment, and
+            use these details only to arrange my visit.</span>
+        </label>
+        <div class="notice error" id="form-error" role="alert" hidden style="margin-top:14px"></div>
+        <div class="sticky-actions">
+          <button type="button" class="btn btn-ghost" data-back="2">← Back</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Request appointment</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Done -->
+    <section id="step-done" hidden>
+      <div class="card success" id="done-card"></div>
+    </section>
+
+    <details class="card" id="lookup" style="margin-top:18px">
+      <summary class="link-btn" style="list-style:none">Already sent a request? Check its status</summary>
+      <form id="lookup-form" class="row" style="margin-top:12px; align-items:flex-end" novalidate>
+        <div class="field" style="flex:1; min-width:150px; margin:0">
+          <label for="l-ref">Reference</label>
+          <input type="text" id="l-ref" placeholder="RMC-XXXXXX" autocomplete="off" maxlength="10" style="text-transform:uppercase">
+        </div>
+        <div class="field" style="flex:1; min-width:150px; margin:0">
+          <label for="l-phone">Mobile number</label>
+          <input type="tel" id="l-phone" inputmode="tel" maxlength="20">
+        </div>
+        <button class="btn btn-teal" type="submit">Check</button>
+      </form>
+      <div id="lookup-result" style="margin-top:12px" aria-live="polite"></div>
+    </details>
+
+    <footer class="site-footer">
+      Rafflesia Medical Centre · Lot 4-8, Lot 9 (Ground Floor), Millennium Commercial Centre, Jalan Lintas,
+      Kepayan, 88200 Kota Kinabalu, Sabah. All consultations are by appointment and subject to doctor
+      availability and confirmation by our help desk. Your details are used only to arrange your appointment.
+    </footer>
+  </main>
+
+  <script type="module" src="/assets/js/book.js"></script>
+</body>
+</html>

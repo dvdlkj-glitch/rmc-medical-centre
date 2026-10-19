@@ -32,6 +32,22 @@ streamlit run streamlit_app.py
 Without secrets the app still runs — the interest counter falls back to a
 local file (counts reset when the container restarts).
 
+## Online appointment booking
+
+The `booking/` folder is a separate web app (Node.js on Railway + Supabase)
+for specialist appointment requests, the help desk confirmation list and each
+doctor's own page. See [booking/README.md](booking/README.md) to deploy it.
+
+Once it is deployed, add its address to the Streamlit secrets so this page
+embeds the booking section:
+
+```toml
+[booking]
+url = "https://<your-app>.up.railway.app"
+```
+
+Without it, the booking section asks visitors to call or WhatsApp instead.
+
 ## Compliance notes (before public launch)
 
 - BrandLaureate award: verified by the client (July 2026) — award strip may

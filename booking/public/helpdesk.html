@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Help Desk · RMC Appointments</title>
+  <meta name="theme-color" content="#173A56">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="inner">
+      <a class="brand" href="/helpdesk">
+        <span class="logo" aria-hidden="true">🌺</span>
+        <span><b>RMC Help Desk</b><small>Appointment confirmations</small></span>
+      </a>
+      <div class="right" id="who" hidden>
+        <span id="staff-name"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logout">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Sign in -->
+    <section id="login" class="login-box" hidden>
+      <form class="card" id="login-form" novalidate>
+        <h1>Help desk sign in</h1>
+        <p class="muted" style="margin:0 0 16px">Your name is recorded on each appointment you confirm.</p>
+        <div class="field">
+          <label for="lg-name">Your name</label>
+          <input type="text" id="lg-name" autocomplete="name" maxlength="40" required>
+        </div>
+        <div class="field">
+          <label for="lg-pw">Help desk password</label>
+          <input type="password" id="lg-pw" autocomplete="current-password" required>
+        </div>
+        <div class="notice error" id="login-error" role="alert" hidden></div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:12px">Sign in</button>
+      </form>
+    </section>
+
+    <!-- App -->
+    <section id="app" hidden>
+      <nav class="tabs" role="tablist" aria-label="Help desk">
+        <button class="tab" role="tab" data-tab="pending" aria-selected="true">📞 To call <span class="count" id="pending-count" hidden></span></button>
+        <button class="tab" role="tab" data-tab="sheet" aria-selected="false">📒 Day sheet</button>
+        <button class="tab" role="tab" data-tab="new" aria-selected="false">➕ Phone booking</button>
+        <button class="tab" role="tab" data-tab="doctors" aria-selected="false">🩺 Doctors &amp; schedules</button>
+        <button class="tab" role="tab" data-tab="search" aria-selected="false">🔎 Search</button>
+      </nav>
+
+      <!-- To call -->
+      <div data-panel="pending" role="tabpanel">
+        <div class="toolbar">
+          <div class="muted" style="font-size:14px">Online requests waiting for a confirmation call — earliest appointment first.</div>
+          <span class="spacer"></span>
+          <span class="fine" id="pending-updated"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="refresh-pending">↻ Refresh</button>
+        </div>
+        <div class="list" id="pending-list"></div>
+      </div>
+
+      <!-- Day sheet -->
+      <div data-panel="sheet" role="tabpanel" hidden>
+        <div class="toolbar">
+          <button type="button" class="btn btn-ghost btn-sm" id="sheet-prev" aria-label="Previous day">‹</button>
+          <input type="date" id="sheet-date" aria-label="Date">
+          <button type="button" class="btn btn-ghost btn-sm" id="sheet-next" aria-label="Next day">›</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="sheet-today">Today</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="sheet-print">🖨 Print</button>
+        </div>
+        <h2 id="sheet-title" style="font-size:18px; margin:4px 2px 12px"></h2>
+        <div id="sheet-body"></div>
+      </div>
+
+      <!-- Phone booking -->
+      <div data-panel="new" role="tabpanel" hidden>
+        <form class="card" id="new-form" novalidate style="max-width:640px">
+          <h2 style="font-size:18px; margin-bottom:4px">Phone / walk-in booking</h2>
+          <p class="muted" style="margin:0 0 14px; font-size:14px">Bookings you enter here are <b>confirmed straight away</b> and appear on the doctor's page.</p>
+          <div class="field">
+            <label for="n-doctor">Doctor</label>
+            <select id="n-doctor" required></select>
+          </div>
+          <div class="field">
+            <label for="n-date">Date</label>
+            <input type="date" id="n-date" required>
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <div id="n-slots" class="slot-grid"></div>
+            <div class="inline-form" style="margin-top:8px">
+              <label for="n-time" class="fine">or another time:</label>
+              <input type="time" id="n-time" step="300">
+            </div>
+          </div>
+          <div class="field">
+            <label for="n-name">Patient name</label>
+            <input type="text" id="n-name" maxlength="80" required>
+          </div>
+          <div class="field">
+            <label for="n-phone">Phone</label>
+            <input type="tel" id="n-phone" inputmode="tel" maxlength="20" required>
+          </div>
+          <div class="field">
+            <label for="n-mrn">RMC patient number <span class="opt">(optional)</span></label>
+            <input type="text" id="n-mrn" maxlength="30">
+          </div>
+          <div class="field">
+            <label for="n-notes">Notes <span class="opt">(optional)</span></label>
+            <textarea id="n-notes" maxlength="300"></textarea>
+          </div>
+          <div class="notice error" id="new-error" role="alert" hidden></div>
+          <button class="btn btn-primary" type="submit" style="margin-top:12px">Save confirmed booking</button>
+        </form>
+      </div>
+
+      <!-- Doctors -->
+      <div data-panel="doctors" role="tabpanel" hidden>
+        <div class="notice" style="margin-bottom:12px">
+          Add each doctor's weekly clinic sessions — patients can only book online inside these times.
+          Add leave days so those dates close. Set a PIN and send the doctor their page link.
+        </div>
+        <div class="toolbar">
+          <input type="search" id="doc-filter" placeholder="Filter doctors">
+        </div>
+        <div class="doctor-admin" id="doctor-admin"></div>
+      </div>
+
+      <!-- Search -->
+      <div data-panel="search" role="tabpanel" hidden>
+        <form class="toolbar" id="search-form">
+          <input type="search" id="search-q" placeholder="Name, phone, RMC number or reference" aria-label="Search">
+          <button class="btn btn-teal btn-sm" type="submit">Search</button>
+        </form>
+        <div class="list" id="search-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/assets/js/helpdesk.js"></script>
+</body>
+</html>

@@ -8,10 +8,12 @@ doctor information, package pricing with terms, and a publication date.
 
 import base64
 import json
+import os
 from pathlib import Path
 
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Rafflesia Medical Centre (RMC) — Kota Kinabalu, Sabah",
@@ -43,6 +45,39 @@ MAP_EMBED = ("https://maps.google.com/maps?q=Rafflesia%20Medical%20Centre%20"
 @st.cache_data
 def img_b64(name: str) -> str:
     return base64.b64encode((ASSETS / name).read_bytes()).decode()
+
+
+# ------------------------------------------------------------ online booking
+# The appointment system (booking/ folder) runs on Railway. Set its address in
+# Streamlit secrets as [booking] url = "https://<app>.up.railway.app", or in the
+# RMC_BOOKING_URL environment variable. Without it the page shows call/WhatsApp.
+
+def _booking_url():
+    try:
+        url = st.secrets["booking"]["url"]
+    except Exception:
+        url = os.environ.get("RMC_BOOKING_URL")
+    return url.rstrip("/") if url else None
+
+
+BOOKING_URL = _booking_url()
+BOOKING_ANCHOR = "#book-appointment"
+
+
+def book_link(slug: str) -> str:
+    """'Book online' link that opens a doctor's times directly (empty if booking is off)."""
+    if not BOOKING_URL:
+        return ""
+    return (f' <a class="book-link" href="{BOOKING_URL}/?doctor={slug}" '
+            f'target="_blank">Book online →</a>')
+
+
+def embed_booking(height: int = 720) -> None:
+    src = f"{BOOKING_URL}/?embed=1"
+    if hasattr(st, "iframe"):  # Streamlit 1.5x+
+        st.iframe(src, height=height)
+    else:
+        components.iframe(src, height=height, scrolling=True)
 
 
 # ------------------------------------------------------------ interest counter
@@ -187,7 +222,21 @@ html, body, [class*="css"], .stMarkdown {{
 }}
 .rmc-btn:hover {{ transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.25); }}
 .rmc-btn.primary {{ background:{PINK}; color:#fff !important; }}
+.rmc-btn.teal {{ background:{TEAL}; color:#fff !important; }}
 .rmc-btn.ghost {{ background:rgba(255,255,255,.92); color:{NAVY} !important; }}
+
+/* ---------- online booking ---------- */
+.book-steps {{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.9rem 0 1rem; }}
+.book-steps span {{
+    background:#fff; border:1px solid #EDE6DB; border-radius:999px; padding:.35rem .9rem;
+    font-size:.82rem; font-weight:600; color:{NAVY};
+}}
+.book-steps b {{ color:{PINK}; margin-right:.3rem; }}
+.book-fallback {{
+    background:#fff; border:1px solid #EDE6DB; border-radius:18px; padding:1.4rem 1.6rem;
+    color:#5F6E78; font-size:.92rem; line-height:1.6;
+}}
+.clinic-card a.book-link {{ color:{PINK_D}; font-weight:700; text-decoration:none; }}
 
 /* ---------- section headers ---------- */
 .sec {{ margin-top: 3.2rem; }}
@@ -354,7 +403,8 @@ st.markdown(f"""
     <span class="chip">💬 Consultation</span>
   </div>
   <div class="btn-row">
-    <a class="rmc-btn primary" href="{WHATSAPP_URL}" target="_blank">💬 WhatsApp {PHONE_DISPLAY}</a>
+    <a class="rmc-btn primary" href="{BOOKING_ANCHOR}" target="_self">📅 Book an Appointment</a>
+    <a class="rmc-btn teal" href="{WHATSAPP_URL}" target="_blank">💬 WhatsApp {PHONE_DISPLAY}</a>
     <a class="rmc-btn ghost" href="{TEL_URL}">📞 Call Customer Service</a>
   </div>
 </div>
@@ -372,6 +422,36 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ---------------------------------------------------------------- online booking
+st.markdown("""
+<div class="sec" id="book-appointment">
+  <div class="kicker">Online Appointment</div>
+  <h2>See doctor availability &amp; request a slot 📅</h2>
+  <p class="sub">Choose a specialist and an open time below. Our help desk will call you to
+  confirm — your appointment is confirmed only after that call.</p>
+  <div class="book-steps">
+    <span><b>1</b>Choose a doctor</span>
+    <span><b>2</b>Pick an open time</span>
+    <span><b>3</b>Leave your name &amp; phone</span>
+    <span><b>4</b>We call to confirm</span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+if BOOKING_URL:
+    embed_booking()
+    st.markdown(
+        f'<p class="fine" style="margin-top:.2rem">On a small screen? '
+        f'<a href="{BOOKING_URL}" target="_blank">Open the booking page full screen ↗</a> · '
+        f'Doctors not listed with online slots can be booked by phone or WhatsApp {PHONE_DISPLAY}.</p>',
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(f"""
+    <div class="book-fallback">Online booking is being set up. Meanwhile, please call or WhatsApp
+    our customer service at <strong>{PHONE_DISPLAY}</strong> to make an appointment.</div>
+    """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- awareness video
 st.markdown('<div style="height:1.4rem"></div>', unsafe_allow_html=True)
@@ -442,7 +522,7 @@ with c1:
       <div class="doc">Dr. Deenish Muniandy — Paediatrician</div>
       <p>Weekend consultation for infants, children and adolescents — including vaccination,
       growth &amp; development review and general paediatric care, in a comfortable,
-      child-friendly environment. By appointment: {PHONE_DISPLAY}.</p>
+      child-friendly environment. By appointment: {PHONE_DISPLAY}.{book_link('deenish-muniandy')}</p>
     </div>
     """, unsafe_allow_html=True)
     interest_button("sunday_paediatric_clinic")
@@ -453,7 +533,7 @@ with c2:
       <h4>Pain Management Consultation</h4>
       <div class="doc">Dr. Rajesh — Pain Management</div>
       <p>Consultation for back pain and related concerns — common causes include posture,
-      muscle strain, ageing and past injuries. Booking via WhatsApp: {PHONE_DISPLAY}.</p>
+      muscle strain, ageing and past injuries. Booking via WhatsApp: {PHONE_DISPLAY}.{book_link('rajesh-kumar-muniandy')}</p>
     </div>
     """, unsafe_allow_html=True)
     interest_button("pain_management")
