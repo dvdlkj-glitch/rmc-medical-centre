@@ -249,17 +249,21 @@ async function loadDoctors() {
   sel.value = current;
 }
 
+let slotsRequest = 0;
+
 async function loadNewSlots() {
+  // Doctor and date can change quickly; only the latest request may draw the slots.
+  const request = ++slotsRequest;
   const box = $('#n-slots');
-  box.replaceChildren();
   const id = $('#n-doctor').value;
   const date = $('#n-date').value;
   if (!id || !date) {
-    box.append(h('span', { class: 'fine' }, 'Choose a doctor and date to see their session times.'));
+    box.replaceChildren(h('span', { class: 'fine' }, 'Choose a doctor and date to see their session times.'));
     return;
   }
   const data = await guarded(() => api(`/api/helpdesk/doctors/${id}/day?date=${date}`));
-  if (!data) return;
+  if (!data || request !== slotsRequest) return;
+  box.replaceChildren();
   if (data.off) box.append(h('div', { class: 'notice warn', style: 'grid-column:1/-1' }, `Doctor is away this day${data.off.reason ? ` (${data.off.reason})` : ''}.`));
   if (!data.slots.length && !data.off) {
     box.append(h('span', { class: 'fine', style: 'grid-column:1/-1' }, 'No clinic session on this day — enter a time below if the doctor agreed to see the patient.'));
