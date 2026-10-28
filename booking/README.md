@@ -21,7 +21,9 @@ Patients can check their status with the reference code (e.g. `RMC-7K3Q9P`) + ph
 
 ## Doctor schedules
 
-The 32 doctors from *RMC_Medical_Specialist_List 2026.pdf* are loaded automatically.
+The doctors from *RMC_Medical_Specialist_List 2026.pdf* are loaded automatically, with the October 2026
+update (`003_doctor_list_oct_2026.sql`): four more specialists, Physiotherapy and Health Screening as clinic
+services (type "Service"), and Dr. Cindy Chin hidden.
 Only two have weekly sessions pre-filled (from the existing web page):
 
 - Dr. Deenish Muniandy — Sunday 8:00 AM – 1:00 PM

@@ -74,7 +74,11 @@ test('full flow: book → help desk confirms → doctor sees it', async () => {
   // Public list shows the seeded doctors with availability for the two published clinics.
   const list = await call('/api/doctors');
   assert.equal(list.status, 200);
-  assert.equal(list.data.doctors.length, 32);
+  // 32 from the 2026 list, plus 4 specialists and 2 services added in Oct 2026, minus Dr. Cindy (hidden)
+  assert.equal(list.data.doctors.length, 37);
+  assert.ok(!list.data.doctors.some((d) => d.slug === 'cindy-chin-yeen-ling'));
+  assert.equal(list.data.doctors.find((d) => d.slug === 'jemes-bala-muga').expertise, 'Echo-cardiogram (ECHO)');
+  assert.equal(list.data.doctors.find((d) => d.slug === 'physiotherapy').doctor_type, 'Service');
   const deenish = list.data.doctors.find((d) => d.slug === 'deenish-muniandy');
   assert.ok(deenish.next_open, 'Sunday paediatric clinic should have open slots');
 
